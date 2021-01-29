@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    function onClick() {
+      var congratsText = document.getElementById("congratsText");
+      congratsText.hidden = false;
+    }
+  </script>
+</head>
+
+<body>
+<h1>Klikni na BOX</h1>
+<h3>dole na obrázku</h3>
+
+<div class="flip-card" tabindex="1" onclick="onClick()">
+  <div class="flip-card-inner">
+    <div class="flip-card-front">
+      <img src="back.jpg" alt="Back" style="width:288px;height:288px;">
+    </div>
+    <div class="flip-card-back">
+      <img src="front.jpg" alt="Front" style="width:288px;height:288px;">
+    </div>
+  </div>
+</div>
+
+<div id="congratsText" hidden="true" style="padding: 16px;">
+ Zas si ma predbehol. 😁 <br>
+ Tak všetko dobré, veľa zdravia ale hlavne šťastia,<br>
+ keďže šťastie je ultimátny cieľ. 🤔 <br>
+ <br>
+ A hej ... uživaj XXVI 😁
+</div>
+
+</body>
+</html>
