@@ -37,7 +37,7 @@
     window.encodeMessage = (title, message) => {
       const toEncode = "{\"T\":\"" + title + "\",\"t\":\"" + message + "\"}";
       var encoded = utf8_to_b64(toEncode);
-      var encoded = encoded.replace("+", "%2B");
+      var encoded = encoded.replaceAll("+", "%2B");
       const link = window.location.origin + window.location.pathname + "?data=" + encoded;
       console.log(link);
     }
