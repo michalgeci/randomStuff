@@ -1,0 +1,61 @@
+<!doctype html>
+
+<html lang="sk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>🎁 🎁 🎁 🎁 🎁</title>
+  <meta name="description" content="Stranka pre blahozelania">
+  <meta name="author" content="Michal G.">
+  <link rel="icon" href="favicon.ico">
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amatic+SC&family=Caveat">
+  <link rel="stylesheet" href="css/styles.css?v=1.0">
+</head>
+
+<body>
+  <div id="sky"></div>
+
+  <div class="center">
+    <h1 id="title">Title</h1>
+    <p id="content">content</p>
+  </div>
+
+  <script type="text/javascript" src="https://code.jquery.com/jquery-1.7.1.min.js"></script>
+  <script src="js/fireworks.js"></script>
+  <script src="js/stars.js"></script>
+  <script>
+    function utf8_to_b64( str ) {
+      return window.btoa(unescape(encodeURIComponent(str)));
+    }
+
+    function b64_to_utf8( str ) {
+      return decodeURIComponent(escape(window.atob(str)));
+    }
+
+    window.encodeMessage = (title, message) => {
+      const toEncode = "{\"T\":\"" + title + "\",\"t\":\"" + message + "\"}";
+      const encoded = utf8_to_b64(toEncode);
+      const link = window.location.origin + window.location.pathname + "?data=" + encoded;
+      console.log(link);
+    }
+
+    const container = document.getElementById("sky");
+    const fireworks = new Fireworks(container, { sound: {enabled: false} });
+    fireworks.start();
+    console.clear()
+
+    const params = new Proxy(new URLSearchParams(window.location.search), {
+      get: (searchParams, prop) => searchParams.get(prop),
+    });
+
+    const data = JSON.parse(b64_to_utf8(params.data));
+    document.getElementById("title").innerHTML = data.T;
+    document.getElementById("content").innerHTML = data.t;
+
+    console.log("Use encodeMessage for new card");
+  </script>
+  
+</body>
+</html>
