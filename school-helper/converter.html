@@ -37,22 +37,33 @@
       return createElementFromHTML(mainString);
     }
 
+    /**
+     * @param {string} day
+     */
+    function splitDay(day) {
+      var dayActivities = (day ?? '').split('\n')
+      var duIndex = dayActivities.findIndex((activity) => activity.startsWith('DH '))
+
+      if (duIndex > -1) {
+        var duActivity = dayActivities[duIndex]
+        dayActivities.splice(duIndex, 1)
+  
+        return([dayActivities.join('\n'), duActivity])
+      } else {
+        return([dayActivities.join('\n'), ''])
+      }
+    }
+
     function getDetails(day) {
       var days = Array.from(day.getElementsByClassName("print-nobreakafter")).map(item => item.children[1].innerText);
       
-      var monVal = days[0].split('\n').slice(1,3)
-      var tueVal = days[1].split('\n').slice(1,3)
-      var wedVal = days[2].split('\n').slice(1,3)
-      var thuVal = days[3].split('\n').slice(1,3)
-      var friVal = days[4].split('\n').slice(1,3)
-      
       return {
         timePeriod: day.children[0].children[0].children[1].textContent,
-        mon: monVal.length > 0 ? monVal : [days[0]],
-        tue: tueVal.length > 0 ? tueVal : [days[1]],
-        wed: wedVal.length > 0 ? wedVal : [days[2]],
-        thu: thuVal.length > 0 ? thuVal : [days[3]],
-        fri: friVal.length > 0 ? friVal : [days[4]],
+        mon: splitDay(days[0]),
+        tue: splitDay(days[1]),
+        wed: splitDay(days[2]),
+        thu: splitDay(days[3]),
+        fri: splitDay(days[4]),
       }
     }
 
@@ -77,7 +88,7 @@
       var filteredDays = Array.from(
         newWindow.document.getElementsByClassName("print-sheet")
       ).filter((item) => {
-        console.log(item.innerHTML);
+        // console.log(item.innerHTML);
         return item.innerHTML.includes(">Rozvrh týždennej činnosti</span>");
       });
 
@@ -97,16 +108,16 @@
             departmentName,
             schoolYear,
             dayDetails.timePeriod,
-            dayDetails.mon[0] ?? "",
-            dayDetails.mon[1] ?? "",
-            dayDetails.tue[0] ?? "",
-            dayDetails.tue[1] ?? "",
-            dayDetails.wed[0] ?? "",
-            dayDetails.wed[1] ?? "",
-            dayDetails.thu[0] ?? "",
-            dayDetails.thu[1] ?? "",
-            dayDetails.fri[0] ?? "",
-            dayDetails.fri[1] ?? "",
+            dayDetails.mon[0],
+            dayDetails.mon[1],
+            dayDetails.tue[0],
+            dayDetails.tue[1],
+            dayDetails.wed[0],
+            dayDetails.wed[1],
+            dayDetails.thu[0],
+            dayDetails.thu[1],
+            dayDetails.fri[0],
+            dayDetails.fri[1],
           )
         );
       });
@@ -115,9 +126,14 @@
     // Onload
     window.onload = () => {
       // Assign button functionality to load file
-      document
-        .getElementById("getFile")
-        .addEventListener("change", readSingleFile, false);
+
+      var inputElement = document.getElementById("getFile")
+      inputElement.onclick = (e) => {
+        e.target.value = null
+      }
+      inputElement.onchange = (e) => {
+        readSingleFile(e)
+      } 
     };
   </script>
 
