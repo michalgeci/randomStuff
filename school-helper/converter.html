@@ -38,6 +38,51 @@
     }
 
     /**
+     * Generates an array of date strings representing all consecutive calendar days 
+     * between a given start date and end date (inclusive), using the "d. m. yyyy" format.
+     *
+     * @param {string} startStr - The start date in "d. m. yyyy" format (e.g., "26. 1. 2026").
+     * @param {string} endStr - The end date in "d. m. yyyy" format (e.g., "30. 1. 2026").
+     * @returns {string[]} An array of formatted date strings spanning the specified range.
+     *
+     * @example
+     * const range = getDatesInRange("26. 1. 2026", "30. 1. 2026");
+     * // returns [ '26. 1. 2026', '27. 1. 2026', '28. 1. 2026', '29. 1. 2026', '30. 1. 2026' ]
+     */
+    function getDatesInRange(startStr, endStr) {
+    // Helper function to turn "26. 1. 2026" into a real JavaScript Date object
+    // Note: Month needs -1 because JavaScript months start at 0 (January is 0)
+    const parseDate = (str) => {
+        const [day, month, year] = str.split('.').map(num => parseInt(num.trim(), 10));
+        return new Date(year, month - 1, day);
+    };
+
+    if (!startStr || !endStr) {
+      return []
+    }
+
+    const startDate = parseDate(startStr);
+    const endDate = parseDate(endStr);
+    const dateArray = [];
+    
+    // Loop from start date to end date, adding 1 day at a time
+    let currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+        const d = currentDate.getDate();
+        const m = currentDate.getMonth() + 1; // Add 1 back to get human month
+        const y = currentDate.getFullYear();
+        
+        // Format back to "d. m. yyyy"
+        dateArray.push(`${d}. ${m}. ${y}`);
+        
+        // Move to the next day
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return dateArray;
+}
+
+    /**
      * @param {string} day
      */
     function splitDay(day) {
@@ -54,19 +99,6 @@
       }
     }
 
-    function getDetails(day) {
-      var days = Array.from(day.getElementsByClassName("print-nobreakafter")).map(item => item.children[1].innerText);
-      
-      return {
-        timePeriod: day.children[0].children[0].children[1].textContent,
-        mon: splitDay(days[0]),
-        tue: splitDay(days[1]),
-        wed: splitDay(days[2]),
-        thu: splitDay(days[3]),
-        fri: splitDay(days[4]),
-      }
-    }
-
     function readSingleFile(e) {
       var file = e.target.files[0];
       if (!file) {
@@ -80,44 +112,79 @@
       reader.readAsText(file);
     }
 
+    const dateRegex = /\b\d{1,2}\.\s\d{1,2}\.\s\d{4}\b/g;
+
+    /**
+     * @param {string} dateString
+     * @returns {string}
+     */
+    function extractDate(dateString) {
+      return dateString.match(dateRegex)[0];
+    }
+
+    /**
+     * @param {string} dateString
+     * @returns {string[]}
+     */
+    function extractDates(dateString) {
+      return [...dateString.matchAll(dateRegex)].map((item => item[0]));
+    }
+
     function openInNewWindow(contents) {
-      var newWindow = window.open("", "_blank");
-      newWindow.document.write(contents);
-
-      var A4Array = newWindow.document.getElementsByClassName("g_echobody")[0];
-      var filteredDays = Array.from(
-        newWindow.document.getElementsByClassName("print-sheet")
-      ).filter((item) => {
-        // console.log(item.innerHTML);
-        return item.innerHTML.includes(">Rozvrh týždennej činnosti</span>");
-      });
-
-      // Delete all pages
-      A4Array.replaceChildren();
-
       // Get additional details
       var schoolName = document.getElementById("schoolName").value;
       var departmentName = document.getElementById("departmentName").value;
       var schoolYear = document.getElementById("schoolYear").value;
 
-      filteredDays.forEach((dayA4) => {
-        var dayDetails = getDetails(dayA4)
-        A4Array.appendChild(
+      // Create a new window for generated file
+      var newWindow = window.open("", "_blank");
+      newWindow.document.write(contents);
+
+      // Load body into one variable
+      var BodyContent = newWindow.document.getElementsByClassName("g_echobody")[0];
+
+      // Get all weeks available
+      var weekRegex = /^\d*\d\. školský týždeň od \d*\d\. \d*\d\. \d{4} do \d*\d\. \d*\d\. \d{4}$/;
+      var allSpans = newWindow.document.querySelectorAll('span');
+      var weekLabels = [...allSpans].filter((value) => weekRegex.test(value.innerText)).map((value) => value.innerText);
+
+      // Generate rest of the days in the week period
+      var weekByDays = weekLabels.map((week) => {
+        const dates = extractDates(week);
+        console.log('>>', dates)
+        return getDatesInRange(dates[0], dates[1])
+      })
+
+      // Load important content
+      var items = newWindow.document.getElementsByClassName("print-nobreakafter")
+      var dataByDay = [...items].reduce((acc, value) => ({
+        ...acc,
+        [extractDate(value.children[0].innerText)]: splitDay(value.children[1].innerText),
+      }), {})
+
+      console.log(weekByDays)
+      console.log(dataByDay)
+
+      // Delete all pages
+      BodyContent.replaceChildren();
+
+      weekByDays.forEach((week, idx) => {
+        BodyContent.appendChild(
           generateWeek(
             schoolName,
             departmentName,
             schoolYear,
-            dayDetails.timePeriod,
-            dayDetails.mon[0],
-            dayDetails.mon[1],
-            dayDetails.tue[0],
-            dayDetails.tue[1],
-            dayDetails.wed[0],
-            dayDetails.wed[1],
-            dayDetails.thu[0],
-            dayDetails.thu[1],
-            dayDetails.fri[0],
-            dayDetails.fri[1],
+            weekLabels[idx],
+            dataByDay[week?.[0]]?.[0] ?? '',
+            dataByDay[week?.[0]]?.[1] ?? '',
+            dataByDay[week?.[1]]?.[0] ?? '',
+            dataByDay[week?.[1]]?.[1] ?? '',
+            dataByDay[week?.[2]]?.[0] ?? '',
+            dataByDay[week?.[2]]?.[1] ?? '',
+            dataByDay[week?.[3]]?.[0] ?? '',
+            dataByDay[week?.[3]]?.[1] ?? '',
+            dataByDay[week?.[4]]?.[0] ?? '',
+            dataByDay[week?.[4]]?.[1] ?? '',
           )
         );
       });
